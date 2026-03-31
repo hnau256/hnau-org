@@ -14,22 +14,45 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# External build directory for upchain-app
+UPCHAIN_BUILD_DIR="$SCRIPT_DIR/build/upchain-app"
+UPCHAIN_REPO="https://github.com/hnau256/upchain-app.git"
+
 echo -e "${YELLOW}Step 1: Pulling latest changes from hnau-org repository...${NC}"
 git pull origin main || git pull origin master || echo "No remote changes or not a git repo"
 
-echo -e "${YELLOW}Step 2: Creating necessary directories...${NC}"
+echo -e "${YELLOW}Step 2: Preparing upchain-app build directory...${NC}"
+mkdir -p build
+
+if [ -d "$UPCHAIN_BUILD_DIR/.git" ]; then
+    echo -e "${YELLOW}  → Repository exists, updating...${NC}"
+    cd "$UPCHAIN_BUILD_DIR"
+    git pull origin master || git pull origin main
+    cd "$SCRIPT_DIR"
+else
+    echo -e "${YELLOW}  → Repository not found, cloning...${NC}"
+    rm -rf "$UPCHAIN_BUILD_DIR"
+    git clone "$UPCHAIN_REPO" "$UPCHAIN_BUILD_DIR"
+fi
+
+echo -e "${YELLOW}Step 3: Building upchain-app...${NC}"
+cd "$UPCHAIN_BUILD_DIR"
+./gradlew :server:installDist --no-daemon
+cd "$SCRIPT_DIR"
+
+echo -e "${YELLOW}Step 4: Creating necessary directories...${NC}"
 mkdir -p data/upchain
 mkdir -p nginx/certbot-data
 mkdir -p nginx/certbot-www
 
-echo -e "${YELLOW}Step 3: Building and starting containers...${NC}"
+echo -e "${YELLOW}Step 5: Building and starting containers...${NC}"
 docker-compose down 2>/dev/null || true
 docker-compose up --build -d
 
-echo -e "${YELLOW}Step 4: Waiting for services to start...${NC}"
+echo -e "${YELLOW}Step 6: Waiting for services to start...${NC}"
 sleep 10
 
-echo -e "${YELLOW}Step 5: Checking service status...${NC}"
+echo -e "${YELLOW}Step 7: Checking service status...${NC}"
 if docker-compose ps | grep -q "Up"; then
     echo -e "${GREEN}✓ Services are running${NC}"
     docker-compose ps

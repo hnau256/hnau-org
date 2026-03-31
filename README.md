@@ -23,10 +23,13 @@ sudo ./deploy.sh
 При запуске `deploy.sh`:
 
 1. **Обновляется текущий репозиторий** (hnau-org)
-2. **Пересобирается и запускается контейнер upchain** (свежий код из https://github.com/hnau256/upchain-app)
-3. **Автоматически получается SSL сертификат** от Let's Encrypt для upchain.hnau.org
-4. **Nginx автоматически переключается** с HTTP на HTTPS когда сертификат получен
-5. **Создаются необходимые директории** для данных
+2. **Проверяется внешняя папка сборки** (`build/upchain-app`):
+   - Если папка пустая или не существует → клонируется https://github.com/hnau256/upchain-app
+   - Если папка существует → выполняется `git pull` для обновления
+3. **Собирается upchain-app** во внешней папке (`./gradlew :server:installDist`)
+4. **Собирается Docker образ**, копируя уже собранное приложение
+5. **Запускаются контейнеры** (Nginx, Upchain, Certbot)
+6. **Автоматически получается SSL сертификат** от Let's Encrypt для upchain.hnau.org
 
 ## Структура
 
@@ -39,9 +42,11 @@ sudo ./deploy.sh
 │   ├── nginx-http.conf        # Конфигурация без SSL
 │   └── nginx-https.conf       # Конфигурация с SSL
 ├── upchain/
-│   └── Dockerfile             # Сборка upchain-app
+│   └── Dockerfile             # Копирует собранное приложение
+├── build/
+│   └── upchain-app/          # Внешняя папка сборки (git clone + build)
 └── data/
-    └── upchain/               # Данные upchain-app (volume)
+    └── upchain/              # Данные upchain-app (volume)
 ```
 
 ## Доступ
@@ -62,8 +67,9 @@ sudo ./deploy.sh
 
 Это:
 1. Обновит hnau-org репозиторий
-2. Пересоберёт контейнер upchain со свежим кодом из https://github.com/hnau256/upchain-app
-3. Перезапустит все сервисы
+2. Обновит upchain-app во внешней папке (`git pull`)
+3. Пересоберёт приложение
+4. Пересоберёт и перезапустит Docker контейнеры
 
 ## Логи
 
@@ -96,8 +102,8 @@ docker-compose restart nginx
 # Проверить статус
 docker-compose ps
 
-# Пересобрать и запустить (обновление)
-docker-compose up --build -d
+# Полная пересборка (обновление кода + билд)
+./deploy.sh
 ```
 
 ## Обновление SSL сертификата
@@ -116,3 +122,10 @@ docker-compose restart nginx
 - Порты 80 и 443 открыты
 - DNS запись `upchain.hnau.org` указывает на сервер
 - Домен upchain.hnau.org доступен из интернета (для Let's Encrypt)
+
+## Преимущества внешней сборки
+
+- **Быстрее**: Docker кэширует слои, а не пересобирает каждый раз
+- **Проще отладка**: Можно проверить сборку отдельно от Docker
+- **Гибкость**: Легко переключаться между версиями upchain-app
+- **Чистота**: Логика git отделена от Docker
