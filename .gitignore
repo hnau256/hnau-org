@@ -1,0 +1,12 @@
+data/
+nginx/ssl/
+nginx/certbot-data/
+nginx/certbot-www/
+*.log
+build
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+.docker/

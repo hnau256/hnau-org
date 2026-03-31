@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  certbot-init:
+    image: certbot/certbot
+    container_name: certbot-init
+    volumes:
+      - ./nginx/certbot-data:/etc/letsencrypt
+      - ./nginx/certbot-www:/var/www/certbot
+    entrypoint: >
+      sh -c '
+        DOMAIN="upchain.hnau.org"
+        EMAIL="hnau256@gmail.com"
+        
+        if [ ! -d "/etc/letsencrypt/live/$$DOMAIN" ]; then
+          echo "Obtaining initial SSL certificate for $$DOMAIN..."
+          certbot certonly --webroot -w /var/www/certbot -d $$DOMAIN --email $$EMAIL --agree-tos --no-eff-email --non-interactive || echo "Failed to obtain certificate, will retry on next start"
+        else
+          echo "SSL certificate already exists"
+        fi
+      '
+    networks:
+      - hnau-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: hnau-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/entrypoint.sh:/entrypoint.sh:ro
+      - ./nginx/nginx-http.conf:/etc/nginx/nginx-http.conf:ro
+      - ./nginx/nginx-https.conf:/etc/nginx/nginx-https.conf:ro
+      - ./nginx/certbot-data:/etc/nginx/ssl:ro
+      - ./nginx/certbot-www:/var/www/certbot:ro
+    depends_on:
+      - certbot-init
+      - upchain
+    entrypoint: ["/entrypoint.sh"]
+    restart: unless-stopped
+    networks:
+      - hnau-network
+
+  upchain:
+    build:
+      context: ./upchain
+      dockerfile: Dockerfile
+    container_name: upchain-app
+    volumes:
+      - ./data/upchain:/data
+    environment:
+      - JAVA_OPTS=-Xmx512m
+    restart: unless-stopped
+    networks:
+      - hnau-network
+
+  certbot:
+    image: certbot/certbot
+    container_name: certbot
+    volumes:
+      - ./nginx/certbot-data:/etc/letsencrypt
+      - ./nginx/certbot-www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    depends_on:
+      - certbot-init
+    networks:
+      - hnau-network
+
+networks:
+  hnau-network:
+    driver: bridge
