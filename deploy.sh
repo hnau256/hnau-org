@@ -40,19 +40,24 @@ cd "$UPCHAIN_BUILD_DIR"
 ./gradlew :server:installDist --no-daemon
 cd "$SCRIPT_DIR"
 
-echo -e "${YELLOW}Step 4: Creating necessary directories...${NC}"
+echo -e "${YELLOW}Step 4: Copying built application to Docker context...${NC}"
+rm -rf upchain/dist
+mkdir -p upchain/dist
+cp -r "$UPCHAIN_BUILD_DIR/server/build/install/server/"* upchain/dist/
+
+echo -e "${YELLOW}Step 5: Creating necessary directories...${NC}"
 mkdir -p data/upchain
 mkdir -p nginx/certbot-data
 mkdir -p nginx/certbot-www
 
-echo -e "${YELLOW}Step 5: Building and starting containers...${NC}"
+echo -e "${YELLOW}Step 6: Building and starting containers...${NC}"
 docker-compose down 2>/dev/null || true
 docker-compose up --build -d
 
-echo -e "${YELLOW}Step 6: Waiting for services to start...${NC}"
+echo -e "${YELLOW}Step 7: Waiting for services to start...${NC}"
 sleep 10
 
-echo -e "${YELLOW}Step 7: Checking service status...${NC}"
+echo -e "${YELLOW}Step 8: Checking service status...${NC}"
 if docker-compose ps | grep -q "Up"; then
     echo -e "${GREEN}✓ Services are running${NC}"
     docker-compose ps

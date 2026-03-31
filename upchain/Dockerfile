@@ -2,9 +2,9 @@ FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
-# Copy pre-built application from external build directory
-# The build context should be the parent directory containing build/upchain-app
-COPY build/upchain-app/server/build/install/server/ .
+# Copy pre-built application from dist directory
+# The dist directory is populated by deploy.sh before docker build
+COPY dist/ .
 
 # Create data directory
 RUN mkdir -p /data

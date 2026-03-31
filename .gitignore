@@ -2,6 +2,7 @@ data/
 nginx/ssl/
 nginx/certbot-data/
 nginx/certbot-www/
+upchain/dist/
 *.log
 build
 .idea/
