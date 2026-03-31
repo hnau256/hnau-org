@@ -1,4 +1,4 @@
-FROM gradle:8-jdk21 AS builder
+FROM gradle:8-jdk17 AS builder
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ RUN git clone https://github.com/hnau256/upchain-app.git .
 RUN ./gradlew :server:installDist --no-daemon
 
 # Runtime stage
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:17-jre
 
 WORKDIR /app
 
