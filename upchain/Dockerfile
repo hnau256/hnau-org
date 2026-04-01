@@ -14,4 +14,4 @@ EXPOSE 8080
 
 # Run the application with data directory argument
 ENTRYPOINT ["./bin/server"]
-CMD ["-d", "/data"]
+CMD ["-d", "/data", "-p", "8080"]
