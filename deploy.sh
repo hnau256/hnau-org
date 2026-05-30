@@ -14,14 +14,14 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# External build directory for upchain-app
-UPCHAIN_BUILD_DIR="$SCRIPT_DIR/build/upchain-app"
-UPCHAIN_REPO="https://github.com/hnau256/upchain-app.git"
+# External build directory for upchain
+UPCHAIN_BUILD_DIR="$SCRIPT_DIR/build/upchain"
+UPCHAIN_REPO="https://github.com/hnau256/upchain.git"
 
 echo -e "${YELLOW}Step 1: Pulling latest changes from hnau-org repository...${NC}"
 git pull origin main || git pull origin master || echo "No remote changes or not a git repo"
 
-echo -e "${YELLOW}Step 2: Preparing upchain-app build directory...${NC}"
+echo -e "${YELLOW}Step 2: Preparing upchain build directory...${NC}"
 mkdir -p build
 
 if [ -d "$UPCHAIN_BUILD_DIR/.git" ]; then
@@ -35,15 +35,15 @@ else
     git clone "$UPCHAIN_REPO" "$UPCHAIN_BUILD_DIR"
 fi
 
-echo -e "${YELLOW}Step 3: Building upchain-app...${NC}"
+echo -e "${YELLOW}Step 3: Building upchain...${NC}"
 cd "$UPCHAIN_BUILD_DIR"
-./gradlew :server:installDist --no-daemon
+./gradlew :sync:server:app:installDist --no-daemon
 cd "$SCRIPT_DIR"
 
 echo -e "${YELLOW}Step 4: Copying built application to Docker context...${NC}"
 rm -rf upchain/dist
 mkdir -p upchain/dist
-cp -r "$UPCHAIN_BUILD_DIR/server/build/install/server/"* upchain/dist/
+cp -r "$UPCHAIN_BUILD_DIR/sync/server/app/build/install/app/"* upchain/dist/
 
 echo -e "${YELLOW}Step 5: Creating necessary directories...${NC}"
 mkdir -p data/upchain
