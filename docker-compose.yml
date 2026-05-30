@@ -46,7 +46,7 @@ services:
     build:
       context: ./upchain
       dockerfile: Dockerfile
-    container_name: upchain-app
+    container_name: upchain
     volumes:
       - ./data/upchain:/data
     environment:

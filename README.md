@@ -23,10 +23,10 @@ sudo ./deploy.sh
 При запуске `deploy.sh`:
 
 1. **Обновляется текущий репозиторий** (hnau-org)
-2. **Проверяется внешняя папка сборки** (`build/upchain-app`):
-   - Если папка пустая или не существует → клонируется https://github.com/hnau256/upchain-app
+2. **Проверяется внешняя папка сборки** (`build/upchain`):
+   - Если папка пустая или не существует → клонируется https://github.com/hnau256/upchain
    - Если папка существует → выполняется `git pull` для обновления
-3. **Собирается upchain-app** во внешней папке (`./gradlew :server:installDist`)
+3. **Собирается upchain** во внешней папке (`./gradlew :server:installDist`)
 4. **Собирается Docker образ**, копируя уже собранное приложение
 5. **Запускаются контейнеры** (Nginx, Upchain, Certbot)
 6. **Автоматически получается SSL сертификат** от Let's Encrypt для upchain.hnau.org
@@ -44,9 +44,9 @@ sudo ./deploy.sh
 ├── upchain/
 │   └── Dockerfile             # Копирует собранное приложение
 ├── build/
-│   └── upchain-app/          # Внешняя папка сборки (git clone + build)
+│   └── upchain/          # Внешняя папка сборки (git clone + build)
 └── data/
-    └── upchain/              # Данные upchain-app (volume)
+    └── upchain/              # Данные upchain (volume)
 ```
 
 ## Доступ
@@ -67,7 +67,7 @@ sudo ./deploy.sh
 
 Это:
 1. Обновит hnau-org репозиторий
-2. Обновит upchain-app во внешней папке (`git pull`)
+2. Обновит upchain во внешней папке (`git pull`)
 3. Пересоберёт приложение
 4. Пересоберёт и перезапустит Docker контейнеры
 
@@ -127,5 +127,5 @@ docker-compose restart nginx
 
 - **Быстрее**: Docker кэширует слои, а не пересобирает каждый раз
 - **Проще отладка**: Можно проверить сборку отдельно от Docker
-- **Гибкость**: Легко переключаться между версиями upchain-app
+- **Гибкость**: Легко переключаться между версиями upchain
 - **Чистота**: Логика git отделена от Docker
